@@ -109,6 +109,119 @@ SC_MODULE(mem_ctrl) {
 
 SC_MODULE(mem_testbench) {
 
-// Add testbench
+  sc_out < sc_uint<2> > comm;
+  sc_out < sc_uint<8> > addr;
+  sc_inout < sc_lv<8> > data;
+
+  sc_in_clk clk;
+  sc_out <bool> reset;
+  sc_out <bool> new_comm;
+  sc_in <bool> complete;
+  
+  void handshake() {
+  	new_comm.write(true);	
+	while (complete.read() == false) wait();
+	
+	cout 	<< "@" << sc_time_stamp() 
+	  	<< ": complete = " << complete.read() << endl;
+
+	if (comm.read() == NOP);
+	else if (comm.read() == RDBYT)
+		cout << "*** data read = " << data.read() << endl;
+	else 
+		data.write(Z);		// stop driving
+	
+	new_comm.write(false);
+	while (complete.read() == true) wait();
+	
+	cout 	<< "@" << sc_time_stamp() 
+	  	<< ": complete = " << complete.read() << endl;
+  }
+  
+  void tb_process() {	
+
+	reset.write(true);
+	wait();
+
+	reset.write(false);
+	addr.write(64);
+	data.write(0);
+	comm.write(WTBYT);	
+	handshake();	
+
+	addr.write(128);
+	data.write(255);
+	comm.write(WTBYT);	
+	handshake();	
+	
+	addr.write(64);
+	comm.write(RDBYT);	
+	handshake();		
+		
+	addr.write(128);
+	comm.write(RDBYT);	
+	handshake();
+		
+	addr.write(0);
+	data.write(129);
+	comm.write(WTBLK);
+	handshake();	
+
+	addr.write(0);
+	comm.write(RDBYT);	
+	handshake();
+
+	addr.write(3);
+	comm.write(RDBYT);	
+	handshake();
+
+	comm.write(NOP);	
+	handshake();	
+				
+  }
+
+  SC_CTOR(mem_testbench) { 
+	SC_CTHREAD(tb_process, clk.pos()); 
+  }
 
 };
+
+
+int sc_main(int argc, char* argv[])
+{
+    // module instances
+    mem_ctrl MC("MC");
+    
+    mem_testbench TB("TB");
+
+    sc_clock clk("clk", 10, SC_NS);
+
+    sc_signal <bool> reset, new_comm, complete;
+    sc_signal < sc_uint<2> > comm;
+    sc_signal < sc_uint<8> > addr;
+    sc_signal_rv <8> data;
+    // _rv needed because of multiple drivers
+  
+
+    // interconnect
+    MC.clk(clk);
+    MC.reset(reset);
+    MC.data(data);
+    MC.addr(addr);
+    MC.comm(comm);
+    MC.new_comm(new_comm);
+    MC.complete(complete);
+
+    TB.clk(clk);
+    TB.reset(reset);
+    TB.data(data);
+    TB.addr(addr);
+    TB.comm(comm);
+    TB.new_comm(new_comm);
+    TB.complete(complete);
+
+    // start the simulation
+    sc_start(5000, SC_NS);
+
+    return 0;
+}
