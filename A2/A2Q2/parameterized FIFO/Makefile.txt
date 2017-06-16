@@ -1,0 +1,14 @@
+TARGET_ARCH = linux
+
+CC     = /usr/bin/g++
+OPT    = -O3
+DEBUG  = -g
+OTHER  = -Wall
+CFLAGS = $(OPT) $(OTHER)
+# CFLAGS = $(DEBUG) $(OTHER)
+
+MODULE = fifo
+SRCS = main.cpp 
+OBJS = $(SRCS:.cpp=.o)
+
+include /package/systemc-2.2.0/examples/sysc/Makefile.defs
