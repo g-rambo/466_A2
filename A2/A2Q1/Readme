@@ -1,0 +1,54 @@
+1.
+- Memory module
+- replace NOP with a RDBLK command that reads a 4 byte block from 256-byte memory (similar to WRBLK command)
+- Write a testbench that generates"adequate" input tests ocording to the memory API
+	- Testbench should Write different data into different memory addresses and then read from them
+	- Testbench should demonstrate the correct execution of the four commands:
+		1. RDBLK
+		2. RDBYT
+		3. WRBYT
+		4. WRBLK
+
+NOTE: when testing WRBLK same data can be written 4 times into memory
+HINT:
+// Example: Portion of sc_main.
+// Notice the use of "sc_signal_rv".
+
+
+#include ...
+
+int sc_main(int argc, char* argv[])
+{
+    // Memory module instance:
+    mem_ctrl MC("MC");
+    
+    // Your testbench module(s) instances:
+    ...
+
+
+    // Internal signals:
+    sc_signal <bool> reset, new_comm, complete;
+    sc_signal < sc_uint<2> > comm;
+    sc_signal < sc_uint<8> > addr;
+    sc_signal_rv <8> data;
+    // _rv needed because of multiple drivers
+  
+
+    // Interconnects:
+    MC.clk(clk);
+    MC.reset(reset);
+    MC.data(data);
+    MC.addr(addr);
+    MC.comm(comm);
+    MC.new_comm(new_comm);
+    MC.complete(complete);
+
+    ...
+
+
+    // Rest of sc_main ...
+
+    return 0;
+}
+
+

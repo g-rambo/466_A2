@@ -1,91 +1,106 @@
+// ELEC 466 ASSIGNMENT 2 QUESTION 1
+// AUTHOR: Graham Ball | V00732898 | June 2017
+//
+// MEMORY MODULE REWRITE
+
+// Including the SystemC library
 #include "systemc.h"
 
-#define NOP   0
-#define RDBYT 1
-#define WTBYT 2
-#define WTBLK 3
+// Defining the read and write memory access commands
+#define NOP   0 // Defining NOP Command Value
+#define RDBYT 1 // Defining NOP Command Value
+#define WTBYT 2 // Defining NOP Command Value
+#define WTBLK 3 // Defining NOP Command Value
 
+// **DEFINE WHAT THIS IS
 static sc_logic Z[8] = {SC_LOGIC_Z, SC_LOGIC_Z, SC_LOGIC_Z, SC_LOGIC_Z, SC_LOGIC_Z, SC_LOGIC_Z, SC_LOGIC_Z, SC_LOGIC_Z};
 
 SC_MODULE(mem_ctrl) {
 
-  sc_in < sc_uint<2> > comm;
-  sc_in < sc_uint<8> > addr;
-  sc_inout <sc_lv<8> > data;
-
-  sc_in_clk clk;
-  sc_in <bool> reset;
-  sc_in <bool> new_comm;
-  sc_out <bool> complete;
-
+// Declaring Ports at the start of the module
+  sc_in < sc_uint<2> > comm;	// Com port is set as input only as type sc_unint2
+  sc_in < sc_uint<8> > addr;	// Addr port is set as input only as type sc_unint8
+  sc_inout <sc_lv<8> > data;	// Data port is set as bidirectional as type sc_lv8 <-- **DEFINE WHAT THIS IS
+// Declaring clocks
+  sc_in_clk clk;		// clk is declared as an input
+// Declaring Flag ports
+  sc_in <bool> reset;		// Reset port is set as input only of type bool
+  sc_in <bool> new_comm;	// new_comm port is set as input only of type bool
+  sc_out <bool> complete;	// Complete port is set as input only of type bool
+// Declaring memory space
   sc_lv <8> memory[256];	// memory space
 
+// Function mem_process()
   void mem_process() {	
+	// Declaring local variables
   	sc_uint <2> comm_s;		// local variable: command sample
   	sc_uint <8> addr_s;		// local variable: address sample
   	sc_lv <8> data_s;		// local variable: data sample
+	
+	// Continuous while loop is entered
 	while (true) {
-	  if (reset.read() == true) complete.write(false);
-	  else {
-	    if (new_comm.read() == true) { 
-		comm_s = comm.read();
-		switch (comm_s) {
-		  case NOP: 
-		  	cout << "@" << sc_time_stamp() 
-	  		     << ": NOP" << endl;
-		  	wait();
-		  	break;
-		  case RDBYT:
-		     	addr_s = addr.read();
-			data_s = memory[addr_s];		  	
-			cout << "@" << sc_time_stamp() 
-	  		     << ": RDBYT, address = " << addr_s 
-			     << ", data = " << data_s << endl;
-		  	wait();
-			data.write(data_s);
-		  	break;
-		  case WTBYT:
-		  	addr_s = addr.read();
-			data_s = data.read();
-			cout << "@" << sc_time_stamp() 
-	  		     << ": WTBYT, address = " << addr_s 
-			     << ", data = " << data_s << endl;
-		  	wait(); 
-		  	memory[addr_s] = data_s;
-			break;
-		  case WTBLK:
-		  	addr_s = addr.read();
-			data_s = data.read();
-			cout << "@" << sc_time_stamp() 
-	  		     << ": WTBLK-0, address = " << addr_s 
-			     << ", data = " << data_s << endl;
-		  	wait();
-			memory[addr_s] = data_s;
-			addr_s++;
-			data_s = data.read();
-			cout << "@" << sc_time_stamp() 
-	  		     << ": WTBLK-1, address = " << addr_s 
-			     << ", data = " << data_s << endl;
-		  	wait();
-			memory[addr_s] = data_s;
-			addr_s++;
-			data_s = data.read();
-			cout << "@" << sc_time_stamp() 
-	  		     << ": WTBLK-2, address = " << addr_s 
-			     << ", data = " << data_s << endl;
-		  	wait();
-			memory[addr_s] = data_s;
-			addr_s++;
-			data_s = data.read();
-			cout << "@" << sc_time_stamp() 
-	  		     << ": WTBLK-3, address = " << addr_s 
-			     << ", data = " << data_s << endl;
-		  	wait();
-			memory[addr_s] = data_s;			     
-		  	break;
-		  default: 
-		  	cout << "Illegal command : " << comm_s << endl;
-		  	break;
+		
+	  	if (reset.read() == true) complete.write(false);
+	  	else {
+	    		if (new_comm.read() == true) { 
+			comm_s = comm.read();
+			switch (comm_s) {
+		  	case NOP: 
+		  		cout 	<< "@" << sc_time_stamp() 
+	  		     		<< ": NOP" << endl;
+		  		wait();
+		  		break;
+		  	case RDBYT:
+		     		addr_s = addr.read();
+				data_s = memory[addr_s];		  	
+				cout 	<< "@" << sc_time_stamp() 
+	  		     		<< ": RDBYT, address = " << addr_s 
+			     		<< ", data = " << data_s << endl;
+		  		wait();
+				data.write(data_s);
+		  		break;
+		  	case WTBYT:
+		  		addr_s = addr.read();
+				data_s = data.read();
+				cout 	<< "@" << sc_time_stamp() 
+	  		     		<< ": WTBYT, address = " << addr_s 
+			     		<< ", data = " << data_s << endl;
+		  		wait(); 
+		  		memory[addr_s] = data_s;
+				break;
+		  	case WTBLK:
+		  		addr_s = addr.read();
+				data_s = data.read();
+				cout 	<< "@" << sc_time_stamp() 
+	  		     		<< ": WTBLK-0, address = " << addr_s 
+			     		<< ", data = " << data_s << endl;
+		  		wait();
+				memory[addr_s] = data_s;
+				addr_s++;
+				data_s = data.read();
+				cout 	<< "@" << sc_time_stamp() 
+	  		     		<< ": WTBLK-1, address = " << addr_s 
+			     		<< ", data = " << data_s << endl;
+		  		wait();
+				memory[addr_s] = data_s;
+				addr_s++;
+				data_s = data.read();
+				cout 	<< "@" << sc_time_stamp() 
+	  		     		<< ": WTBLK-2, address = " << addr_s 
+			     		<< ", data = " << data_s << endl;
+		  		wait();
+				memory[addr_s] = data_s;
+				addr_s++;
+				data_s = data.read();
+				cout 	<< "@" << sc_time_stamp() 
+	  		     		<< ": WTBLK-3, address = " << addr_s 
+			     		<< ", data = " << data_s << endl;
+		  		wait();
+				memory[addr_s] = data_s;			     
+		  		break;
+		  	default: 
+		  		cout << "Illegal command : " << comm_s << endl;
+		  		break;
 		}
 		complete.write(true);
 		while (new_comm.read() == true) {
